@@ -1,7 +1,8 @@
 include .env
 export
 
-# PG_connection := "postgresql://$(PG_USER):$(PG_PASSWORD)@$(PG_HOST):$(PG_PORT)/$(PG_NAME)?sslmode=disable"
+PG_connection := "postgresql://$(PG_USERNAME):$(PG_PASSWORD)@$(PG_HOST):$(PG_PORT)/$(PG_DATABASE)?sslmode=disable"
+
 db_connection:
 	@echo "PostgreSQL Connection String: postgresql://$(PG_USERNAME):$(PG_PASSWORD)@$(PG_HOST):$(PG_PORT)/$(PG_DATABASE)"
 
@@ -13,3 +14,6 @@ migratedown:
 
 migratecreate:
 	migrate create -ext sql -dir ./db/migration -seq $(name)
+
+cmd-run:
+	go run cmd/main.go
