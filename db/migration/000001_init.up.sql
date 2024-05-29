@@ -1,13 +1,18 @@
 CREATE TABLE author (
     id INT GENERATED ALWAYS AS IDENTITY,
-    name TEXT NOT NULL,
-	primary key (id)
+    primary key (id),
+    -- id serial PRIMARY KEY,
+    name VARCHAR(255) UNIQUE NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    
 );
 
 CREATE TABLE todo (
     id INT GENERATED ALWAYS AS IDENTITY,
     title TEXT NOT NULL,
     completed BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     author_id INT NOT NULL,
     constraint todo_author FOREIGN KEY (author_id) REFERENCES author (id)

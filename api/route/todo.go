@@ -3,10 +3,14 @@ package route
 import (
 	handler "basic-rest-api-orm/api/handler"
 
-	gin "github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin"
 )
 
-func TodoRoute(gr *gin.Engine, h handler.TodoHandler) {
+func TodoRoute(gr *gin.Engine, h handler.TodoHandler) *gin.Engine {
 	grg := gr.Group("/todo")
-	grg.GET("/", h.TodoGetAll)
+	{
+		grg.GET("/", h.TodoGetAll)
+	}
+
+	return gr
 }
