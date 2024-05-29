@@ -11,7 +11,9 @@ import (
 	"basic-rest-api-orm/initializer"
 	"basic-rest-api-orm/repository"
 	"basic-rest-api-orm/service/author"
+	"basic-rest-api-orm/service/todo"
 	"github.com/go-pg/pg/v10"
+	"github.com/google/wire"
 )
 
 // Injectors from wire.go:
@@ -20,7 +22,15 @@ func InitApi(db *pg.DB) initializer.Provider {
 	authorRepository := repository.ProvideAuthorRepository(db)
 	authorService := authorservice.ProvideAuthorService(authorRepository)
 	authorHandler := handler.ProviderAuthorHandler(authorService)
-	todoHandler := handler.ProviderTodoHandler()
+	todoRepository := repository.ProvideTodoRepository(db)
+	todoService := todoservice.ProvideTodoService(todoRepository)
+	todoHandler := handler.ProviderTodoHandler(todoService)
 	provider := initializer.InitProvider(authorHandler, todoHandler)
 	return provider
 }
+
+// wire.go:
+
+var authorSet = wire.NewSet(repository.ProvideAuthorRepository, authorservice.ProvideAuthorService, handler.ProviderAuthorHandler)
+
+var todoSet = wire.NewSet(repository.ProvideTodoRepository, todoservice.ProvideTodoService, handler.ProviderTodoHandler)
