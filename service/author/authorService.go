@@ -38,5 +38,16 @@ func (s *AuthorService) Create(author *model.Author) error {
 	if err != nil {
 		return err
 	}
+
+	return nil
+}
+
+func (s *AuthorService) Update(prev, update *model.Author) error {
+
+	err := s.authorRepo.Update(prev, update)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

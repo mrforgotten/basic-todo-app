@@ -3,6 +3,7 @@ package handler
 import (
 	"basic-rest-api-orm/model"
 	authorservice "basic-rest-api-orm/service/author"
+	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -75,5 +76,40 @@ func (h *AuthorHandler) AuthorCreate(gCtx *gin.Context) {
 	}
 	gCtx.JSON(200, gin.H{
 		"data": author,
+	})
+}
+
+func (h *AuthorHandler) AuthorUpdate(gCtx *gin.Context) {
+	p := gCtx.Param("id")
+
+	id, err := strconv.Atoi(p)
+	if err != nil {
+		gCtx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	var update *model.Author
+	if err := gCtx.ShouldBindJSON(&update); err != nil {
+		gCtx.JSON(400, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	data := &model.Author{
+		Id: id,
+	}
+
+	update.Id = id
+
+	if err := h.authorService.Update(data, update); err != nil {
+		gCtx.JSON(500, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	gCtx.JSON(200, gin.H{
+		"data": update,
 	})
 }

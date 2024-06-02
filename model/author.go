@@ -1,11 +1,16 @@
 package model
 
+import "time"
+
 type Author struct {
-	Id        int    `pg:"id,pk" json:"id"`
-	Name      string `pg:"name,unique" json:"name" binding:"required"`
-	CreatedAt string `pg:"created_at" json:"created_at"`
+	tableName struct{}  `pg:",discard_unknown_columns"`
+	Id        int       `pg:"id,pk" json:"id"`
+	Name      string    `pg:"name,unique" json:"name" binding:"required"`
+	CreatedAt time.Time `pg:"created_at" json:"created_at,omitempty"`
+	UpdatedAt time.Time `pg:"updated_at" json:"updated_at,omitempty"`
 }
 
-func (t Author) TableName() string {
-	return "author"
+type AuthorUpdate struct {
+	Name      string
+	UpdatedAt time.Time
 }

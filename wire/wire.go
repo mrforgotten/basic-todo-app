@@ -4,7 +4,7 @@
 package wire
 
 import (
-	"basic-rest-api-orm/api/handler"
+	"basic-rest-api-orm/handler"
 	"basic-rest-api-orm/initializer"
 	"basic-rest-api-orm/repository"
 	authorservice "basic-rest-api-orm/service/author"

@@ -4,16 +4,22 @@ import (
 	"basic-rest-api-orm/model"
 	"errors"
 	"log"
+	"os"
+	"time"
 
 	"github.com/go-pg/pg/v10"
 )
 
+var logger = log.New(os.Stderr, "AuthorRepository: ", log.Ldate|log.Ltime|log.Lshortfile)
+
 type AuthorRepository struct {
 	db *pg.DB
+
+	logger *log.Logger
 }
 
 func ProvideAuthorRepository(db *pg.DB) AuthorRepository {
-	return AuthorRepository{db: db}
+	return AuthorRepository{db: db, logger: logger}
 }
 
 func (a *AuthorRepository) GetAll() ([]model.Author, error) {
@@ -52,6 +58,7 @@ func (a *AuthorRepository) Create(author *model.Author) error {
 	// make transaction for create author
 	tx, err := a.db.Begin()
 	if err != nil {
+		log.Println("Error while creating transaction: ", err)
 		return err
 	}
 
@@ -61,6 +68,7 @@ func (a *AuthorRepository) Create(author *model.Author) error {
 	isExist, err := a.AuthorNameIsExist(tx, author.Name)
 
 	if err != nil {
+		log.Println("Error while checking author name is exist: ", err)
 		return err
 	} else if isExist {
 		return errors.New("duplicate unique value for column name")
@@ -68,6 +76,7 @@ func (a *AuthorRepository) Create(author *model.Author) error {
 
 	// Insert author
 	if _, err := tx.Model(author).Returning("*").Insert(author); err != nil {
+		log.Println("Error while inserting author: ", err)
 		tx.Rollback()
 		return err
 	}
@@ -77,10 +86,33 @@ func (a *AuthorRepository) Create(author *model.Author) error {
 	return nil
 }
 
-func (a *AuthorRepository) Update(prev, update *model.Author) error {
-	_, err := a.db.Model(&prev).WherePK().Update()
+func (a *AuthorRepository) Update(prev *model.Author, update *model.Author) error {
+
+	tx, err := a.db.Begin()
+
 	if err != nil {
 		return err
 	}
+
+	defer tx.Close()
+	// Check if author is exist
+
+	if err := tx.Model(prev).WherePK().Select(); err != nil {
+		tx.Rollback()
+		log.Println("Error while checking author is exist: ", err)
+		return err
+	}
+
+	// update author
+	update.Id = prev.Id
+	update.UpdatedAt = time.Now()
+
+	_, err = tx.Model(update).WherePK().Update()
+	if err != nil {
+		tx.Rollback()
+		log.Println("Error while updating author: ", err)
+		return err
+	}
+
 	return nil
 }
