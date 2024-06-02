@@ -1,7 +1,7 @@
 package route
 
 import (
-	handler "basic-rest-api-orm/api/handler"
+	handler "basic-rest-api-orm/handler"
 
 	"github.com/gin-gonic/gin"
 )

@@ -1,8 +1,8 @@
 package initializer
 
 import (
-	"basic-rest-api-orm/api/handler"
-	"basic-rest-api-orm/api/route"
+	"basic-rest-api-orm/handler"
+	"basic-rest-api-orm/route"
 
 	"github.com/gin-gonic/gin"
 )
