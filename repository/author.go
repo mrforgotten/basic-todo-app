@@ -58,17 +58,21 @@ func (a *AuthorRepository) Create(author *model.Author) error {
 	// make transaction for create author
 	tx, err := a.db.Begin()
 	if err != nil {
-		log.Println("Error while creating transaction: ", err)
 		return err
 	}
 
-	defer tx.Close()
+	defer func() {
+		if err != nil {
+			log.Println("Error while creating author: ", err)
+			tx.Rollback()
+		}
+		tx.Close()
+	}()
 
 	// Check if author name is exist
 	isExist, err := a.AuthorNameIsExist(tx, author.Name)
 
 	if err != nil {
-		log.Println("Error while checking author name is exist: ", err)
 		return err
 	} else if isExist {
 		return errors.New("duplicate unique value for column name")
@@ -76,8 +80,6 @@ func (a *AuthorRepository) Create(author *model.Author) error {
 
 	// Insert author
 	if _, err := tx.Model(author).Returning("*").Insert(author); err != nil {
-		log.Println("Error while inserting author: ", err)
-		tx.Rollback()
 		return err
 	}
 	log.Println("Author created")
@@ -94,12 +96,15 @@ func (a *AuthorRepository) Update(prev *model.Author, update *model.Author) erro
 		return err
 	}
 
-	defer tx.Close()
-	// Check if author is exist
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		}
+		tx.Close()
+	}()
 
+	// Check if author is exist
 	if err := tx.Model(prev).WherePK().Select(); err != nil {
-		tx.Rollback()
-		log.Println("Error while checking author is exist: ", err)
 		return err
 	}
 
@@ -109,10 +114,10 @@ func (a *AuthorRepository) Update(prev *model.Author, update *model.Author) erro
 
 	_, err = tx.Model(update).WherePK().Update()
 	if err != nil {
-		tx.Rollback()
-		log.Println("Error while updating author: ", err)
 		return err
 	}
+
+	tx.Commit()
 
 	return nil
 }
