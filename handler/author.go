@@ -96,13 +96,9 @@ func (h *AuthorHandler) AuthorUpdate(gCtx *gin.Context) {
 		return
 	}
 
-	data := &model.Author{
-		Id: id,
-	}
-
 	update.Id = id
 
-	if err := h.authorService.Update(data, update); err != nil {
+	if err := h.authorService.Update(id, update); err != nil {
 		gCtx.JSON(500, gin.H{
 			"error": err.Error(),
 		})
