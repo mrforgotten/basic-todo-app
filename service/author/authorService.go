@@ -42,9 +42,11 @@ func (s *AuthorService) Create(author *model.Author) error {
 	return nil
 }
 
-func (s *AuthorService) Update(prev, update *model.Author) error {
+func (s *AuthorService) Update(id int, update *model.Author) error {
 
-	err := s.authorRepo.Update(prev, update)
+	update.Id = id
+
+	err := s.authorRepo.Update(update)
 	if err != nil {
 		return err
 	}

@@ -88,7 +88,7 @@ func (a *AuthorRepository) Create(author *model.Author) error {
 	return nil
 }
 
-func (a *AuthorRepository) Update(prev *model.Author, update *model.Author) error {
+func (a *AuthorRepository) Update(update *model.Author) error {
 
 	tx, err := a.db.Begin()
 
@@ -103,21 +103,22 @@ func (a *AuthorRepository) Update(prev *model.Author, update *model.Author) erro
 		tx.Close()
 	}()
 
+	var prev *model.Author = new(model.Author)
 	// Check if author is exist
-	if err := tx.Model(prev).WherePK().Select(); err != nil {
+	if err := tx.Model(prev).Where("id = ?", update.Id).Select(); err != nil {
 		return err
 	}
 
-	// update author
-	update.Id = prev.Id
-	update.UpdatedAt = time.Now()
+	update.UpdatedAt = time.Now().UTC()
 
-	_, err = tx.Model(update).WherePK().Update()
+	_, err = tx.Model(update).Column("name", "updated_at").WherePK().Update(update)
 	if err != nil {
 		return err
 	}
 
 	tx.Commit()
+
+	a.db.Model(update).WherePK().Select()
 
 	return nil
 }

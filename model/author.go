@@ -11,6 +11,8 @@ type Author struct {
 }
 
 type AuthorUpdate struct {
-	Name      string
-	UpdatedAt time.Time
+	tableName struct{}  `pg:"author,discard_unknown_columns"`
+	Id        int       `pg:"id,pk" json:"id"`
+	Name      string    `pg:"name,unique" json:"name" binding:"required"`
+	UpdatedAt time.Time `pg:"updated_at" json:"updated_at,omitempty"`
 }
