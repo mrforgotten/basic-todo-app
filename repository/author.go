@@ -10,28 +10,35 @@ import (
 	"github.com/go-pg/pg/v10"
 )
 
-var logger = log.New(os.Stderr, "AuthorRepository: ", log.Ldate|log.Ltime|log.Lshortfile)
+type AuthorRepository interface {
+	Create(author *model.Author) error
+	GetById(id int) (*model.Author, error)
+	GetAll() ([]model.Author, error)
+	Update(update *model.Author) error
+	Delete(id int) error
+}
 
-type AuthorRepository struct {
+type AuthorRepositoryImpl struct {
 	db *pg.DB
 
 	logger *log.Logger
 }
 
 func ProvideAuthorRepository(db *pg.DB) AuthorRepository {
-	return AuthorRepository{db: db, logger: logger}
+	var logger = log.New(os.Stderr, "AuthorRepository: ", log.Ldate|log.Ltime|log.Lshortfile)
+	return &AuthorRepositoryImpl{db: db, logger: logger}
 }
 
-func (a *AuthorRepository) GetAll() ([]model.Author, error) {
+func (r *AuthorRepositoryImpl) GetAll() ([]model.Author, error) {
 	var authors []model.Author
-	err := a.db.Model(&authors).Select()
+	err := r.db.Model(&authors).Select()
 	if err != nil {
 		return nil, err
 	}
 	return authors, nil
 }
 
-func (a *AuthorRepository) AuthorNameIsExist(tx *pg.Tx, name string) (bool, error) {
+func (r *AuthorRepositoryImpl) AuthorNameIsExist(tx *pg.Tx, name string) (bool, error) {
 	author := new(model.Author)
 	err := tx.Model(author).Where("name =?", name).Select()
 	if err != nil {
@@ -45,18 +52,18 @@ func (a *AuthorRepository) AuthorNameIsExist(tx *pg.Tx, name string) (bool, erro
 	return true, nil
 }
 
-func (a *AuthorRepository) GetById(id int) (*model.Author, error) {
+func (r *AuthorRepositoryImpl) GetById(id int) (*model.Author, error) {
 	var author *model.Author
-	err := a.db.Model(&author).Where("id = ?", id).Select()
+	err := r.db.Model(&author).Where("id = ?", id).Select()
 	if err != nil {
 		return &model.Author{}, err
 	}
 	return author, nil
 }
 
-func (a *AuthorRepository) Create(author *model.Author) error {
+func (r *AuthorRepositoryImpl) Create(author *model.Author) error {
 	// make transaction for create author
-	tx, err := a.db.Begin()
+	tx, err := r.db.Begin()
 	if err != nil {
 		return err
 	}
@@ -70,7 +77,7 @@ func (a *AuthorRepository) Create(author *model.Author) error {
 	}()
 
 	// Check if author name is exist
-	isExist, err := a.AuthorNameIsExist(tx, author.Name)
+	isExist, err := r.AuthorNameIsExist(tx, author.Name)
 
 	if err != nil {
 		return err
@@ -88,9 +95,9 @@ func (a *AuthorRepository) Create(author *model.Author) error {
 	return nil
 }
 
-func (a *AuthorRepository) Update(update *model.Author) error {
+func (r *AuthorRepositoryImpl) Update(update *model.Author) error {
 
-	tx, err := a.db.Begin()
+	tx, err := r.db.Begin()
 
 	if err != nil {
 		return err
@@ -118,7 +125,22 @@ func (a *AuthorRepository) Update(update *model.Author) error {
 
 	tx.Commit()
 
-	a.db.Model(update).WherePK().Select()
+	r.db.Model(update).WherePK().Select()
 
 	return nil
+}
+
+func (r *AuthorRepositoryImpl) Delete(id int) error {
+	author, err := r.GetById(id)
+	if err != nil {
+		return err
+	}
+
+	_, err = r.db.Model(&author).Delete()
+
+	if err != nil {
+		return err
+	}
+
+	return err
 }

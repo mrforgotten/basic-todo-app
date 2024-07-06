@@ -2,48 +2,141 @@ package repository
 
 import (
 	"basic-rest-api-orm/model"
+	"log"
+	"os"
+	"time"
 
 	"github.com/go-pg/pg/v10"
 )
 
-type TodoRepository struct {
+type TodoRepository interface {
+	Create(todo *model.Todo) error
+	GetAll() ([]model.Todo, error)
+	GetById(id int) (*model.Todo, error)
+	Update(update *model.Todo) error
+	Delete(id int) error
+}
+
+type TodoRepositoryImpl struct {
 	db *pg.DB
+
+	logger *log.Logger
 }
 
 func ProvideTodoRepository(db *pg.DB) TodoRepository {
-	return TodoRepository{db: db}
+	var logger = log.New(os.Stderr, "TodoRepository: ", log.Ldate|log.Ltime|log.Lshortfile)
+	return &TodoRepositoryImpl{db: db, logger: logger}
 }
 
-func (t *TodoRepository) GetAll() ([]model.Todo, error) {
+func (r *TodoRepositoryImpl) GetAll() ([]model.Todo, error) {
 	var todos []model.Todo
-	err := t.db.Model(&todos).Select()
+	err := r.db.Model(&todos).Select()
 	if err != nil {
 		return nil, err
 	}
 	return todos, nil
 }
 
-func (t *TodoRepository) GetById(id int) (model.Todo, error) {
-	var todo model.Todo
-	err := t.db.Model(&todo).Where("id = ?", id).Select()
+func (r *TodoRepositoryImpl) TodoNameIsExist(tx *pg.Tx, name string) (bool, error) {
+	todo := new(model.Todo)
+	err := tx.Model(todo).Where("name =?", name).Select()
 	if err != nil {
-		return model.Todo{}, err
+		if err == pg.ErrNoRows {
+			return false, nil
+		}
+		log.Println("Error while checking todo name is exist: ", err)
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (r *TodoRepositoryImpl) GetById(id int) (*model.Todo, error) {
+	var todo *model.Todo
+	err := r.db.Model(&todo).Where("id = ?", id).Select()
+	if err != nil {
+		return &model.Todo{}, err
 	}
 	return todo, nil
 }
 
-func (t *TodoRepository) Create(todo model.Todo) (model.Todo, error) {
-	_, err := t.db.Model(&todo).Insert()
+func (r *TodoRepositoryImpl) Create(todo *model.Todo) error {
+	// make transaction for create todo
+	tx, err := r.db.Begin()
 	if err != nil {
-		return model.Todo{}, err
+		return err
 	}
-	return todo, nil
+
+	defer func() {
+		if err != nil {
+			log.Println("Error while creating todo: ", err)
+			tx.Rollback()
+		}
+		tx.Close()
+	}()
+
+	// Check if todo name is exist
+
+	if err != nil {
+		return err
+	}
+
+	// Insert todo
+	if _, err := tx.Model(todo).Returning("*").Insert(todo); err != nil {
+		return err
+	}
+	log.Println("Todo created")
+	tx.Commit()
+
+	return nil
 }
 
-func (t *TodoRepository) Update(prev, update model.Todo) (model.Todo, error) {
-	_, err := t.db.Model(&prev).WherePK().Update()
+func (r *TodoRepositoryImpl) Update(update *model.Todo) error {
+
+	tx, err := r.db.Begin()
+
 	if err != nil {
-		return model.Todo{}, err
+		return err
 	}
-	return update, nil
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		}
+		tx.Close()
+	}()
+
+	var prev *model.Todo = new(model.Todo)
+	// Check if todo is exist
+	if err := tx.Model(prev).Where("id = ?", update.Id).Select(); err != nil {
+		return err
+	}
+
+	update.UpdatedAt = time.Now().UTC()
+
+	_, err = tx.Model(update).Column("title", "updated_at").WherePK().Update(update)
+	if err != nil {
+		return err
+	}
+
+	tx.Commit()
+
+	r.db.Model(update).WherePK().Select()
+
+	return nil
+}
+
+func (r *TodoRepositoryImpl) Delete(id int) error {
+	todo, err := r.GetById(id)
+	if err != nil {
+		return err
+	}
+
+	_, err = r.db.Model(&todo).Delete()
+
+	if err != nil {
+		return err
+	}
+
+	return err
 }

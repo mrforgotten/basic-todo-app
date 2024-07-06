@@ -6,15 +6,22 @@ import (
 	"log"
 )
 
-type TodoService struct {
+type TodoService interface {
+	Create(todo *model.Todo) error
+	GetAll() ([]model.Todo, error)
+	GetByID(id int) (model.Todo, error)
+	Update(id int, update *model.Todo) error
+}
+
+type TodoServiceImpl struct {
 	todoRepo repository.TodoRepository
 }
 
 func ProvideTodoService(r repository.TodoRepository) TodoService {
-	return TodoService{todoRepo: r}
+	return &TodoServiceImpl{todoRepo: r}
 }
 
-func (s *TodoService) GetAll() ([]model.Todo, error) {
+func (s *TodoServiceImpl) GetAll() ([]model.Todo, error) {
 	var todos []model.Todo
 	todos, err := s.todoRepo.GetAll()
 	if err != nil {
@@ -24,29 +31,32 @@ func (s *TodoService) GetAll() ([]model.Todo, error) {
 	return todos, nil
 }
 
-func (s *TodoService) GetByID(id int) (model.Todo, error) {
+func (s *TodoServiceImpl) GetByID(id int) (model.Todo, error) {
 	todo, err := s.todoRepo.GetById(id)
 	if err != nil {
 		return model.Todo{}, err
 	}
-	return todo, nil
+	return *todo, nil
 }
 
-func (s *TodoService) Create(todo model.Todo) (model.Todo, error) {
-	if todo.Title == "" {
+func (s *TodoServiceImpl) Create(todo *model.Todo) error {
 
-	}
-	data, err := s.todoRepo.Create(todo)
+	err := s.todoRepo.Create(todo)
 	if err != nil {
-		return model.Todo{}, err
+		return err
 	}
-	return data, nil
+
+	return nil
 }
 
-func (s *TodoService) Update(todo model.Todo) (model.Todo, error) {
-	data, err := s.todoRepo.Create(todo)
+func (s *TodoServiceImpl) Update(id int, update *model.Todo) error {
+
+	update.Id = id
+
+	err := s.todoRepo.Update(update)
 	if err != nil {
-		return model.Todo{}, err
+		return err
 	}
-	return data, nil
+
+	return nil
 }

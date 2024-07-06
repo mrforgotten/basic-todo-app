@@ -6,15 +6,22 @@ import (
 	"log"
 )
 
-type AuthorService struct {
+type AuthorService interface {
+	Create(author *model.Author) error
+	GetAll() ([]model.Author, error)
+	GetByID(id int) (model.Author, error)
+	Update(id int, update *model.Author) error
+}
+
+type AuthorServiceImpl struct {
 	authorRepo repository.AuthorRepository
 }
 
 func ProvideAuthorService(r repository.AuthorRepository) AuthorService {
-	return AuthorService{authorRepo: r}
+	return &AuthorServiceImpl{authorRepo: r}
 }
 
-func (s *AuthorService) GetAll() ([]model.Author, error) {
+func (s *AuthorServiceImpl) GetAll() ([]model.Author, error) {
 	var authors []model.Author
 	authors, err := s.authorRepo.GetAll()
 	if err != nil {
@@ -24,7 +31,7 @@ func (s *AuthorService) GetAll() ([]model.Author, error) {
 	return authors, nil
 }
 
-func (s *AuthorService) GetByID(id int) (model.Author, error) {
+func (s *AuthorServiceImpl) GetByID(id int) (model.Author, error) {
 	author, err := s.authorRepo.GetById(id)
 	if err != nil {
 		return model.Author{}, err
@@ -32,7 +39,7 @@ func (s *AuthorService) GetByID(id int) (model.Author, error) {
 	return *author, nil
 }
 
-func (s *AuthorService) Create(author *model.Author) error {
+func (s *AuthorServiceImpl) Create(author *model.Author) error {
 
 	err := s.authorRepo.Create(author)
 	if err != nil {
@@ -42,7 +49,7 @@ func (s *AuthorService) Create(author *model.Author) error {
 	return nil
 }
 
-func (s *AuthorService) Update(id int, update *model.Author) error {
+func (s *AuthorServiceImpl) Update(id int, update *model.Author) error {
 
 	update.Id = id
 
