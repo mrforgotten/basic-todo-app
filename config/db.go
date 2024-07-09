@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"log"
 	"os"
 
 	"github.com/go-pg/pg/v10"
@@ -10,7 +11,7 @@ import (
 
 func GetDbConfig() *pg.Options {
 	if err := godotenv.Load(); err != nil {
-		panic("Error loading .env file")
+		log.Printf("Error loading .env file: %v", err)
 	}
 
 	opts := &pg.Options{

@@ -21,6 +21,6 @@
 go.work
 
 # etc
-.env
+.env*
 *.env
 !*.example

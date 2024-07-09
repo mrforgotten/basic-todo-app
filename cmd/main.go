@@ -4,6 +4,7 @@ import (
 	"basic-rest-api-orm/config"
 	"basic-rest-api-orm/initializer"
 	"basic-rest-api-orm/wire"
+	"fmt"
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -11,18 +12,19 @@ import (
 )
 
 var (
-	opts     *pg.Options
+	dbOpts   *pg.Options
 	dbDriver *pg.DB
 )
 
 func main() {
-	opts = config.GetDbConfig()
+	dbOpts = config.GetDbConfig()
 
-	dbDriver := initializer.InitDb(opts)
+	dbDriver := initializer.InitDb(dbOpts)
 	defer dbDriver.Close()
 
+	appOpts := config.GetAppConfig()
 	p := wire.InitApi(dbDriver)
 	var gin *gin.Engine = p.InitApp()
-	log.Println("Server started at 127.0.0.1:8080")
-	gin.Run("127.0.0.1:8080")
+	log.Printf("Server started at 127.0.0.1:%v\n", appOpts.AppPort)
+	gin.Run(fmt.Sprintf("127.0.0.1:%v", appOpts.AppPort))
 }
