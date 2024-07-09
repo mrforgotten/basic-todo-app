@@ -15,5 +15,8 @@ migratedown:
 migratecreate:
 	migrate create -ext sql -dir ./db/migration -seq $(name)
 
+build-app:
+	go build cmd/main.go
+
 cmd-run:
 	go run cmd/main.go
