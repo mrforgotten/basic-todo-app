@@ -24,7 +24,7 @@ type AuthorRepositoryImpl struct {
 	logger *log.Logger
 }
 
-func ProvideAuthorRepository(db *pg.DB) AuthorRepository {
+func NewProvideAuthorRepository(db *pg.DB) AuthorRepository {
 	var logger = log.New(os.Stderr, "AuthorRepository: ", log.Ldate|log.Ltime|log.Lshortfile)
 	return &AuthorRepositoryImpl{db: db, logger: logger}
 }

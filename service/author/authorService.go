@@ -17,7 +17,7 @@ type AuthorServiceImpl struct {
 	authorRepo repository.AuthorRepository
 }
 
-func ProvideAuthorService(r repository.AuthorRepository) AuthorService {
+func NewProvideAuthorService(r repository.AuthorRepository) AuthorService {
 	return &AuthorServiceImpl{authorRepo: r}
 }
 

@@ -23,7 +23,7 @@ type TodoRepositoryImpl struct {
 	logger *log.Logger
 }
 
-func ProvideTodoRepository(db *pg.DB) TodoRepository {
+func NewProvideTodoRepository(db *pg.DB) TodoRepository {
 	var logger = log.New(os.Stderr, "TodoRepository: ", log.Ldate|log.Ltime|log.Lshortfile)
 	return &TodoRepositoryImpl{db: db, logger: logger}
 }

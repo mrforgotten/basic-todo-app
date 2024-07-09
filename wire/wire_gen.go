@@ -19,18 +19,18 @@ import (
 // Injectors from wire.go:
 
 func InitApi(db *pg.DB) initializer.Provider {
-	authorRepository := repository.ProvideAuthorRepository(db)
-	authorService := authorservice.ProvideAuthorService(authorRepository)
-	authorHandler := handler.ProviderAuthorHandler(authorService)
-	todoRepository := repository.ProvideTodoRepository(db)
-	todoService := todoservice.ProvideTodoService(todoRepository)
-	todoHandler := handler.ProviderTodoHandler(todoService)
+	authorRepository := repository.NewProvideAuthorRepository(db)
+	authorService := authorservice.NewProvideAuthorService(authorRepository)
+	authorHandler := handler.NewProviderAuthorHandler(authorService)
+	todoRepository := repository.NewProvideTodoRepository(db)
+	todoService := todoservice.NewProvideTodoService(todoRepository)
+	todoHandler := handler.NewProviderTodoHandler(todoService)
 	provider := initializer.InitProvider(authorHandler, todoHandler)
 	return provider
 }
 
 // wire.go:
 
-var authorSet = wire.NewSet(repository.ProvideAuthorRepository, authorservice.ProvideAuthorService, handler.ProviderAuthorHandler)
+var authorSet = wire.NewSet(repository.NewProvideAuthorRepository, authorservice.NewProvideAuthorService, handler.NewProviderAuthorHandler)
 
-var todoSet = wire.NewSet(repository.ProvideTodoRepository, todoservice.ProvideTodoService, handler.ProviderTodoHandler)
+var todoSet = wire.NewSet(repository.NewProvideTodoRepository, todoservice.NewProvideTodoService, handler.NewProviderTodoHandler)

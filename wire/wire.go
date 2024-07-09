@@ -15,15 +15,15 @@ import (
 )
 
 var authorSet = wire.NewSet(
-	repository.ProvideAuthorRepository,
-	authorservice.ProvideAuthorService,
-	handler.ProviderAuthorHandler,
+	repository.NewProvideAuthorRepository,
+	authorservice.NewProvideAuthorService,
+	handler.NewProviderAuthorHandler,
 )
 
 var todoSet = wire.NewSet(
-	repository.ProvideTodoRepository,
-	todoservice.ProvideTodoService,
-	handler.ProviderTodoHandler,
+	repository.NewProvideTodoRepository,
+	todoservice.NewProvideTodoService,
+	handler.NewProviderTodoHandler,
 )
 
 func InitApi(_ *pg.DB) initializer.Provider {

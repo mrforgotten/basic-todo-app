@@ -13,7 +13,7 @@ type AuthorHandler struct {
 	authorService authorservice.AuthorService
 }
 
-func ProviderAuthorHandler(s authorservice.AuthorService) AuthorHandler {
+func NewProviderAuthorHandler(s authorservice.AuthorService) AuthorHandler {
 	return AuthorHandler{
 		authorService: s,
 	}

@@ -13,7 +13,7 @@ type TodoHandler struct {
 	todoService todoservice.TodoService
 }
 
-func ProviderTodoHandler(s todoservice.TodoService) TodoHandler {
+func NewProviderTodoHandler(s todoservice.TodoService) TodoHandler {
 	return TodoHandler{
 		todoService: s,
 	}

@@ -17,7 +17,7 @@ type TodoServiceImpl struct {
 	todoRepo repository.TodoRepository
 }
 
-func ProvideTodoService(r repository.TodoRepository) TodoService {
+func NewProvideTodoService(r repository.TodoRepository) TodoService {
 	return &TodoServiceImpl{todoRepo: r}
 }
 
