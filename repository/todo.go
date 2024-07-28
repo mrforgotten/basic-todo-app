@@ -37,20 +37,6 @@ func (r *TodoRepositoryImpl) GetAll() ([]model.Todo, error) {
 	return todos, nil
 }
 
-func (r *TodoRepositoryImpl) TodoNameIsExist(tx *pg.Tx, name string) (bool, error) {
-	todo := new(model.Todo)
-	err := tx.Model(todo).Where("name =?", name).Select()
-	if err != nil {
-		if err == pg.ErrNoRows {
-			return false, nil
-		}
-		log.Println("Error while checking todo name is exist: ", err)
-		return false, err
-	}
-
-	return true, nil
-}
-
 func (r *TodoRepositoryImpl) GetById(id int) (*model.Todo, error) {
 	var todo *model.Todo
 	err := r.db.Model(&todo).Where("id = ?", id).Select()

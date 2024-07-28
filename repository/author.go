@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/go-pg/pg/v10"
+	"github.com/go-pg/pg/v10/orm"
 )
 
 type AuthorRepository interface {
@@ -38,9 +39,10 @@ func (r *AuthorRepositoryImpl) GetAll() ([]model.Author, error) {
 	return authors, nil
 }
 
-func (r *AuthorRepositoryImpl) AuthorNameIsExist(tx *pg.Tx, name string) (bool, error) {
+func (r *AuthorRepositoryImpl) AuthorNameIsExist(ormQuery *orm.Query, name string) (bool, error) {
 	author := new(model.Author)
-	err := tx.Model(author).Where("name =?", name).Select()
+	err := ormQuery.Model(author).Where("name =?", name).Select()
+
 	if err != nil {
 		if err == pg.ErrNoRows {
 			return false, nil
@@ -77,7 +79,7 @@ func (r *AuthorRepositoryImpl) Create(author *model.Author) error {
 	}()
 
 	// Check if author name is exist
-	isExist, err := r.AuthorNameIsExist(tx, author.Name)
+	isExist, err := r.AuthorNameIsExist(tx.Model(), author.Name)
 
 	if err != nil {
 		return err
