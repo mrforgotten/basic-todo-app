@@ -1,8 +1,11 @@
 package handler
 
 import (
+	"basic-rest-api-orm/dto"
+	"basic-rest-api-orm/helper"
 	"basic-rest-api-orm/model"
 	todoservice "basic-rest-api-orm/service/todo"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -20,57 +23,56 @@ func NewProviderTodoHandler(s todoservice.TodoService) TodoHandler {
 }
 
 func (h *TodoHandler) TodoGetAll(gCtx *gin.Context) {
-	todos, err := h.todoService.GetAll()
+	data, err := h.todoService.GetAll()
 	if err != nil {
 
-		gCtx.JSON(500, gin.H{
-			"error": err.Error(),
-		})
+		gCtx.JSON(500, helper.ToRes(err))
 		return
 	}
-	gCtx.JSON(200, gin.H{
-		"data": todos,
-	})
+
+	gCtx.JSON(200, helper.ToRes(data))
 }
 
 func (h *TodoHandler) TodoGetByID(gCtx *gin.Context) {
 	id, err := strconv.Atoi(gCtx.Param("id"))
 	if err != nil {
-		gCtx.JSON(400, gin.H{
-			"error": err.Error(),
-		})
+		gCtx.JSON(400, helper.ToRes(err))
 		return
 	}
 	todo, err := h.todoService.GetByID(id)
 	if err != nil {
-		gCtx.JSON(500, gin.H{
-			"error": err.Error(),
-		})
+		gCtx.JSON(500, helper.ToRes(err))
 		return
 	}
 	gCtx.JSON(200, todo)
 }
 
 func (h *TodoHandler) TodoCreate(gCtx *gin.Context) {
-	var todo *model.Todo
-	if err := gCtx.ShouldBindJSON(&todo); err != nil {
-		gCtx.JSON(400, gin.H{
-			"error": err.Error(),
-		})
+	var input *dto.TodoCreate
+	if err := gCtx.ShouldBindJSON(&input); err != nil {
+		gCtx.JSON(400, helper.ToRes(err))
 		return
 	}
 
-	err := h.todoService.Create(todo)
+	authorId, err := strconv.Atoi(gCtx.GetHeader("author_id"))
+
 	if err != nil {
+		gCtx.JSON(400, helper.ToRes(err))
+	}
+	var data = &model.Todo{
+		Title:    input.Title,
+		AuthorId: authorId,
+	}
 
-		gCtx.JSON(500, gin.H{
-			"error": err.Error(),
-		})
+	err = h.todoService.Create(data)
+	if err != nil {
+		gCtx.JSON(500, helper.ToRes(err))
+
+		log.Printf("error unable to create: %v", err)
+
 		return
 	}
-	gCtx.JSON(200, gin.H{
-		"data": todo,
-	})
+	gCtx.JSON(200, helper.ToRes(data))
 }
 
 func (h *TodoHandler) TodoUpdate(gCtx *gin.Context) {
@@ -78,28 +80,22 @@ func (h *TodoHandler) TodoUpdate(gCtx *gin.Context) {
 
 	id, err := strconv.Atoi(p)
 	if err != nil {
-		gCtx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		gCtx.JSON(http.StatusBadRequest, helper.ToRes(err))
 		return
 	}
 
-	var update *model.Todo
-	if err := gCtx.ShouldBindJSON(&update); err != nil {
-		gCtx.JSON(400, gin.H{
-			"error": err.Error(),
-		})
+	var data *model.Todo
+	if err := gCtx.ShouldBindJSON(&data); err != nil {
+		gCtx.JSON(400, helper.ToRes(err))
 		return
 	}
 
-	update.Id = id
+	data.Id = id
 
-	if err := h.todoService.Update(id, update); err != nil {
-		gCtx.JSON(500, gin.H{
-			"error": err.Error(),
-		})
+	if err := h.todoService.Update(id, data); err != nil {
+		gCtx.JSON(500, helper.ToRes(err))
 		return
 	}
 
-	gCtx.JSON(200, gin.H{
-		"data": update,
-	})
+	gCtx.JSON(200, helper.ToRes(data))
 }
