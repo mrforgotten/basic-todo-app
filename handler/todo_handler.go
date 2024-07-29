@@ -2,25 +2,25 @@ package handler
 
 import (
 	"basic-rest-api-orm/model"
-	authorservice "basic-rest-api-orm/service/author"
+	todoservice "basic-rest-api-orm/service/todo"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
-type AuthorHandler struct {
-	authorService authorservice.AuthorService
+type TodoHandler struct {
+	todoService todoservice.TodoService
 }
 
-func NewProviderAuthorHandler(s authorservice.AuthorService) AuthorHandler {
-	return AuthorHandler{
-		authorService: s,
+func NewProviderTodoHandler(s todoservice.TodoService) TodoHandler {
+	return TodoHandler{
+		todoService: s,
 	}
 }
 
-func (h *AuthorHandler) AuthorGetAll(gCtx *gin.Context) {
-	authors, err := h.authorService.GetAll()
+func (h *TodoHandler) TodoGetAll(gCtx *gin.Context) {
+	todos, err := h.todoService.GetAll()
 	if err != nil {
 
 		gCtx.JSON(500, gin.H{
@@ -29,11 +29,11 @@ func (h *AuthorHandler) AuthorGetAll(gCtx *gin.Context) {
 		return
 	}
 	gCtx.JSON(200, gin.H{
-		"data": authors,
+		"data": todos,
 	})
 }
 
-func (h *AuthorHandler) AuthorGetByID(gCtx *gin.Context) {
+func (h *TodoHandler) TodoGetByID(gCtx *gin.Context) {
 	id, err := strconv.Atoi(gCtx.Param("id"))
 	if err != nil {
 		gCtx.JSON(400, gin.H{
@@ -41,45 +41,39 @@ func (h *AuthorHandler) AuthorGetByID(gCtx *gin.Context) {
 		})
 		return
 	}
-	author, err := h.authorService.GetByID(id)
+	todo, err := h.todoService.GetByID(id)
 	if err != nil {
 		gCtx.JSON(500, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
-	gCtx.JSON(200, author)
+	gCtx.JSON(200, todo)
 }
 
-func (h *AuthorHandler) AuthorCreate(gCtx *gin.Context) {
-	var author *model.Author
-	if err := gCtx.ShouldBindJSON(&author); err != nil {
+func (h *TodoHandler) TodoCreate(gCtx *gin.Context) {
+	var todo *model.Todo
+	if err := gCtx.ShouldBindJSON(&todo); err != nil {
 		gCtx.JSON(400, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
 
-	err := h.authorService.Create(author)
+	err := h.todoService.Create(todo)
 	if err != nil {
-		if err.Error() == "duplicate unique value for column name" {
-			gCtx.JSON(400, gin.H{
-				"error": "Author name already exist",
-			})
-			return
 
-		}
 		gCtx.JSON(500, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
 	gCtx.JSON(200, gin.H{
-		"data": author,
+		"data": todo,
 	})
 }
 
-func (h *AuthorHandler) AuthorUpdate(gCtx *gin.Context) {
+func (h *TodoHandler) TodoUpdate(gCtx *gin.Context) {
 	p := gCtx.Param("id")
 
 	id, err := strconv.Atoi(p)
@@ -88,7 +82,7 @@ func (h *AuthorHandler) AuthorUpdate(gCtx *gin.Context) {
 		return
 	}
 
-	var update *model.Author
+	var update *model.Todo
 	if err := gCtx.ShouldBindJSON(&update); err != nil {
 		gCtx.JSON(400, gin.H{
 			"error": err.Error(),
@@ -98,7 +92,7 @@ func (h *AuthorHandler) AuthorUpdate(gCtx *gin.Context) {
 
 	update.Id = id
 
-	if err := h.authorService.Update(id, update); err != nil {
+	if err := h.todoService.Update(id, update); err != nil {
 		gCtx.JSON(500, gin.H{
 			"error": err.Error(),
 		})

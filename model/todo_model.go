@@ -5,7 +5,7 @@ import "time"
 type Todo struct {
 	Id        int       `pg:",pk" json:"id"`
 	Title     string    `pg:"title" json:"title" binding:"required,min=3,max=100"`
-	Completed bool      `pg:"completed" json:"completed"`
+	Completed bool      `pg:"completed"`
 	AuthorId  int       `pg:"author_id" json:"author_id"`
 	Author    *Author   `pg:"rel:belongs-to" json:"author,omitempty"`
 	CreatedAt time.Time `pg:"created_at" json:"created_at,omitempty"`
