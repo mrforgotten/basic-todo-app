@@ -100,7 +100,7 @@ func (r *TodoRepositoryImpl) Update(update *model.Todo) error {
 
 	update.UpdatedAt = time.Now().UTC()
 
-	_, err = tx.Model(update).Column("title", "updated_at").WherePK().Update(update)
+	_, err = tx.Model(update).WherePK().UpdateNotZero(update)
 	if err != nil {
 		return err
 	}

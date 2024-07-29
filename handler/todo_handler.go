@@ -59,6 +59,7 @@ func (h *TodoHandler) TodoCreate(gCtx *gin.Context) {
 	if err != nil {
 		gCtx.JSON(400, helper.ToRes(err))
 	}
+
 	var data = &model.Todo{
 		Title:    input.Title,
 		AuthorId: authorId,
@@ -91,6 +92,28 @@ func (h *TodoHandler) TodoUpdate(gCtx *gin.Context) {
 	}
 
 	data.Id = id
+
+	if err := h.todoService.Update(id, data); err != nil {
+		gCtx.JSON(500, helper.ToRes(err))
+		return
+	}
+
+	gCtx.JSON(200, helper.ToRes(data))
+}
+
+func (h *TodoHandler) TodoUpdateComplete(gCtx *gin.Context) {
+	p := gCtx.Param("id")
+
+	id, err := strconv.Atoi(p)
+	if err != nil {
+		gCtx.JSON(http.StatusBadRequest, helper.ToRes(err))
+		return
+	}
+
+	var data *model.Todo = &model.Todo{
+		Id:        id,
+		Completed: true,
+	}
 
 	if err := h.todoService.Update(id, data); err != nil {
 		gCtx.JSON(500, helper.ToRes(err))
